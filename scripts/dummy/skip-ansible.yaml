@@ -1,0 +1,7 @@
+---
+ - hosts: default
+   gather_facts: no
+   tasks:
+    - name: Running Default Playbook
+      ansible.builtin.debug:
+        msg: Skipping Anisble Scripts..!!

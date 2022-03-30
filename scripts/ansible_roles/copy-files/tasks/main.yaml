@@ -1,0 +1,5 @@
+- name: Copying "{{ item }}"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop: "{{ files }}"

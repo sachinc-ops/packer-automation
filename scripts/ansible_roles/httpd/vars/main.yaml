@@ -1,0 +1,5 @@
+---
+default_apache_dir: /var/www
+default_httpd_conf: /etc/httpd/conf/httpd.conf
+server_admin: devops@example.com
+

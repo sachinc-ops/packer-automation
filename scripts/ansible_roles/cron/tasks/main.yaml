@@ -1,0 +1,12 @@
+---
+- name: Adding Cron Job
+  ansible.builtin.cron:
+    name: "{{ item.name | default('Added by Anisble script') }}"
+    special_time: "{{ item.special_time | default(omit) }}"
+    weekday: "{{ item.weekday | default('*') }}"
+    day: "{{ item.day | default('*') }}"
+    minute: "{{ item.minute | default('*') }}"
+    hour: "{{ item.hour | default('*') }}"
+    user: "{{ item.user | default('root') }}"
+    job: "{{ item.job }}"
+  loop: "{{ cron_config }}"

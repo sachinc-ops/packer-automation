@@ -1,0 +1,14 @@
+<VirtualHost  *:443>
+    ServerAdmin {{ server_admin }}
+    DocumentRoot {{ default_apache_dir }}
+    SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+    SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+    SSLCertificateChainFile /etc/pki/tls/certs/ca-bundle.crt
+    SSLEngine on
+    SSLVerifyClient none
+    SSLOptions +StdEnvVars
+    Header always set Strict-Transport-Security "max-age=15768000"
+    SSLProtocol -all +TLSv1.2
+    ErrorLog logs/default-ssl-error_log
+    CustomLog logs/default-ssl-access_log combined
+</VirtualHost>

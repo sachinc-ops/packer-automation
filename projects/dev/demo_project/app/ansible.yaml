@@ -1,0 +1,58 @@
+---
+- hosts: default
+  user: ec2-user
+  become: true
+  gather_facts: yes
+  #ignore_errors: "{{ ansible_check_mode }}"
+  roles:
+
+    - awscli-2
+  
+    - role: directory-mgt
+      folder_config:
+      -
+        path: /mnt/drive_1/www
+        perm: '0755'
+        type: directory
+      -
+        path: /var/www/demo/public/
+        perm: '0755'
+        type: directory
+
+    - role: httpd
+      extra_virtualhost_config:
+      -
+        server_name: example.com
+        document_root: /var/www/demo/public/
+        vhost_specific_config:
+          - SSLProxyEngine on
+          - ProxyPass /v1 https://example2.com
+          - ProxyPassReverse /v1 https://example2.com
+          - <Directory /var/www/demo/public>
+          -  Require all granted
+          - </Directory>
+
+    - role: php80
+      php_extentions_extra:
+        - php-mysqlnd
+
+    - role: copy-files
+      files:
+      -
+         src: demo.sh
+         dest: /opt/demo.sh
+
+    - role: cron
+      cron_config:
+      -
+         name: "Demo Cron"
+         special_time: reboot
+         job: "/bin/sh /opt/demo.sh"
+
+    - role: fstab-entry
+      entries:
+      -
+        src: abcdefg.efs.us-east-1.amazonaws.com:/
+        path: /efs-mount
+        fstype: nfs4
+        opts: nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2

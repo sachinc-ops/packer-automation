@@ -1,0 +1,53 @@
+#!/bin/bash
+
+###########################
+# Author     : Sachin.C   #
+###########################
+
+
+PACKER_VAR_FILE_NAME="packer_inputs.pkrvars.hcl"
+ANSIBLE_FILE_NAME="ansible.yaml"
+PKR_VAR_DIR=$(echo $2 | sed 's:/*$::')
+PACKER_REQUIRED_VERSION="1.7.2"
+ANSIBLE_REQUIRED_VERSION="2.11.0"
+PACKER_ARGS=(validate build)
+USAGE="Usage: \n 1) ./packer-runner [validate|build] projects/<env>/<project>/<type>/ \n 2) ./packer-runner [validate|build] projects/<env>/<project>/<type>/ami_patch"
+
+
+fail() {
+    echo -e "\u2718  ERROR: $1"
+    exit 1;
+}
+success() {
+    echo -e "\u2714  SUCCESS: $1 Check"
+}
+prerequisites() {
+    [[ $(which ansible) ]] || fail "Ansible is not installed"
+    (printf '%s\n%s\n' "${ANSIBLE_REQUIRED_VERSION}" "$(ansible --version | head -1| cut -d " " -f3 | tr -d '[]')" | sort --check=quiet --version-sort) && success "Ansible Version" || fail "Required Ansible version is $ANSIBLE_REQUIRED_VERSION or above."
+    [[ $(which  packer) ]] || fail "Packer is not installed"
+    (printf '%s\n%s\n' "${PACKER_REQUIRED_VERSION}" "$(packer -v)" | sort --check=quiet --version-sort) && success "Packer Version" || fail "Required Packer version is $PACKER_REQUIRED_VERSION or above."
+}
+packer_cmd() {
+    $(which packer) $1 $2 -var-file="$PKR_VAR_DIR/$PACKER_VAR_FILE_NAME" .
+}
+validate () {
+    prerequisites
+    packer_cmd validate && success "Packer Var File valdation" || fail "Packer Var File"
+    ANSIBLE=$(packer_cmd inspect | grep run_ansible_playbook | awk '{print $2}' | tr -d '"')
+    if [[ "$ANSIBLE" == "true" ]]; then
+        env ANSIBLE_LOCALHOST_WARNING=False ANSIBLE_CONFIG=./ansible.cfg ansible-playbook --syntax-check $PKR_VAR_DIR/$ANSIBLE_FILE_NAME > /dev/null  && success "Ansible Playbook Syntax" || fail "Ansible Playbook Syntax"
+    fi
+}
+build () {
+    validate
+    packer_cmd build -color=false
+}
+
+[[ "$1" == "" ]] && fail "No Argument provided \n$USAGE"
+(printf '%s\n' "${PACKER_ARGS[@]}" | grep -xq $1) || fail "Please enter a valid argument - [validate | build] \n$USAGE"
+[[ "$2" == "" ]] && fail "Please Specify Packer Var folder path \n$USAGE"
+[[ -d "$2" ]] || fail "Invalid folder path \n$USAGE"
+[[ -f "$PKR_VAR_DIR/$PACKER_VAR_FILE_NAME" ]] || fail "$PKR_VAR_DIR/$PACKER_VAR_FILE_NAME not found \n$USAGE"
+[[ "$?" == "0" ]] && $1
+
+

@@ -1,0 +1,12 @@
+---
+- name: Download and unarchive aws cli2
+  ansible.builtin.unarchive:
+    src: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+    dest: /tmp
+    remote_src: yes
+  no_log: true
+
+- name: Install awscli2
+  ansible.builtin.command:
+     sh /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+

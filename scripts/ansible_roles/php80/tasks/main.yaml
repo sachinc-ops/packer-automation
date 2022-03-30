@@ -1,0 +1,30 @@
+---
+- name: Install amazon-linux-extras repo
+  ansible.builtin.command:
+    yum install -y amazon-linux-extras
+  when: ansible_distribution == "Amazon"
+
+- name: Enable PHP 80 repo
+  ansible.builtin.command:
+    amazon-linux-extras enable php8.0
+  when: ansible_distribution == "Amazon"
+
+- name: Install PHP 80 from amazon-linux-extras repo
+  ansible.builtin.command:
+    yum install -y php php-common
+  
+- name: Install PHP 8 common packages
+  ansible.builtin.package:
+    name:
+      - php
+      - php-cli
+      - php-common
+    state: latest
+  notify: restart "{{ SERVICE_NAME }}"
+
+- name: Installing extra PHP extentions
+  ansible.builtin.package:
+    name: "{{ php_extentions_extra }}"
+    state: present
+  notify: restart "{{ SERVICE_NAME }}"
+  when: php_extentions_extra is defined

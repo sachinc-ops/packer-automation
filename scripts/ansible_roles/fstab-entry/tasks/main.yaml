@@ -1,0 +1,9 @@
+---
+- name: Adding entries to /etc/fstab
+  ansible.posix.mount:
+     path: "{{ item.path }}"
+     src: "{{ item.src }}"
+     fstype: "{{ item.fstype }}"
+     opts: "{{ item.opts }}"
+     state: present
+  loop: "{{ entries }}"

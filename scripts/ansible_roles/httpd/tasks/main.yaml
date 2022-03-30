@@ -1,0 +1,29 @@
+---
+- name: Install Apache(httpd)
+  ansible.builtin.package:
+    name: 
+      - httpd
+      - mod_ssl
+    state: latest
+
+- name: Rename default httpd conf
+  ansible.builtin.command: mv -v "{{default_httpd_conf }}" "{{ default_httpd_conf }}"_backup
+
+- name: Copying optimized default httpd.conf
+  ansible.builtin.template:
+    src: default-httpd.conf.j2
+    dest: "/etc/httpd/conf/httpd.conf"
+
+- name: Adding extra virtualhost config file(s)
+  ansible.builtin.template:
+    src: extra-httpd.conf.j2
+    dest: "/etc/httpd/conf.d/{{ item.server_name }}.conf"
+  loop: "{{ extra_virtualhost_config }}"
+  when: extra_virtualhost_config is defined
+
+- name: Start and Enable Apache Service
+  ansible.builtin.systemd:
+    name: httpd
+    daemon_reload : yes
+    state: started
+    enabled: yes

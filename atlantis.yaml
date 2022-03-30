@@ -1,0 +1,10 @@
+version: 3
+automerge: false
+parallel_apply: false
+parallel_plan: false
+projects:
+- dir: .
+  workflow: packer
+  autoplan:
+    enabled: false
+    when_modified: ["*"]
